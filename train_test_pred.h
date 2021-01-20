@@ -1,3 +1,5 @@
+
+// Forward propagation.
 double ***forward_prop(double ***gen_ip, int j){
   gen_ip = calloc(sizeof(int *), no_of_layers-1);
   for (int i=0 ; i<no_of_layers-1 ; i++){
@@ -7,21 +9,19 @@ double ***forward_prop(double ***gen_ip, int j){
     if(i==0) ip = t_vect(ip_samples[j], 1, nodes_in_layer[i]);    
     else     ip = gen_ip[i-1];
 
-    mult = mul(trans, ip, nodes_in_layer[i+1], nodes_in_layer[i], nodes_in_layer[i], 1);
-    biased = add_bias(mult, bias[i], nodes_in_layer[i+1], 1);
-    double **log = logit(biased, nodes_in_layer[i+1], 1);
+    mult = mul(trans, ip, nodes_in_layer[i+1], nodes_in_layer[i], nodes_in_layer[i], 1);  // net = w1*i1 + w2*i2
+    biased = add_bias(mult, bias[i], nodes_in_layer[i+1], 1);                             // z = net + bias at layer i.
+    double **log = logit(biased, nodes_in_layer[i+1], 1);                                 // logit(z)
     gen_ip[i] = log;
   }
-  
-  printf("\nForward prop \n");
-  for(int i=0; i<no_of_layers-1; i++) {
-    for(int j=0;j<nodes_in_layer[i+1];j++){for(int k=0;k<1;k++)printf("%lf",gen_ip[i][j][k]);printf("\n");} 
-    printf("\n");
-  }
-
+  /*To be un-commented only if needed.
+  printf("\nForward prop \n");for(int i=0; i<no_of_layers-1; i++) {
+    for(int j=0;j<nodes_in_layer[i+1];j++)for(int k=0;k<1;k++) printf("%lf ",gen_ip[i][j][k]); printf("\n");printf("\n");}
+  */
   return gen_ip;
 }
 
+// Backward propagation.
 void backward_prop(double ***gen_ip, int j){
   double ita = 0.5;
   //2nd Layer.
@@ -41,18 +41,9 @@ void backward_prop(double ***gen_ip, int j){
   double dEtotal_dw7    = dEtotal_doutO2 * doutO2_dNetO2 * dNetO2_dw7;  //= -0.0226025
   double dEtotal_dw8    = dEtotal_doutO2 * doutO2_dNetO2 * dNetO2_dw8;  //= -0.0227402
 
-  //Update weights of 2nd layer.
-  //w[i] ( wi_new ) = wi_old – ita*dEtotal_dwi
-  //records[1][0][0] = 0.40; //w5   records[1][0][1] = 0.50; //w7
-  //records[1][1][0] = 0.45; //w6   records[1][1][1] = 0.55; //w8
-  //printf("\n%lf  %lf  %lf  %lf", dEtotal_dw5, dEtotal_dw6, dEtotal_dw7, dEtotal_dw8);
-  
+
   records[1][0][0] -= ita * dEtotal_dw5;  records[1][0][1] -= ita * dEtotal_dw7;
   records[1][1][0] -= ita * dEtotal_dw6;  records[1][1][1] -= ita * dEtotal_dw8;
-
-  printf("\nUpdated weights at Layer2");
-  printf("\n%lf  ", records[1][0][0]); printf("%lf", records[1][0][1]);
-  printf("\n%lf  ", records[1][1][0]); printf("%lf", records[1][1][1]);
 
   //1st layer.
   double dNetO1_doutH1  = records[1][0][0];
@@ -83,34 +74,25 @@ void backward_prop(double ***gen_ip, int j){
   records[0][0][0] -= ita * dEtotal_dw1;  records[0][0][1] -= ita * dEtotal_dw3;
   records[0][1][0] -= ita * dEtotal_dw2;  records[0][1][1] -= ita * dEtotal_dw4;
 
-  printf("\n\nUpdated weights at Layer1");
-  printf("\n%lf  ", records[0][0][0]); printf("%lf", records[0][0][1]);
-  printf("\n%lf  ", records[0][1][0]); printf("%lf", records[0][1][1]);
-
 
 }
 
 
 
-/*
+/* TO BE IGNORED.
     //Forward Propagation.
 		for (int i=0 ; i<no_of_layers-1 ; i++){
       //printf("\n=====================================");
-
       printf("\n\ntranspose of the weight matrix= \n"); 
       for(int k=0;k<nodes_in_layer[i+1];k++){ for(int l=0;l<nodes_in_layer[i];l++)printf("%lf ",trans[k][l]);printf("\n");}
-
       if(i==0){ printf("\n\ntranspose of the initial inputs= \n"); 
         for(int k=0;k<nodes_in_layer[i];k++){for(int l=0;l<1;l++)printf("%lf ",ip[k][l]);printf("\n");} }
       else{ printf("\n\ngen_ip = \n"); 
         for(int k=0;k<nodes_in_layer[i];k++){for(int l=0;l<1;l++)printf("%lf ",ip[k][l]);printf("\n");} }
-
       printf("\n\nmultiplication = \n");
       for(int k=0;k<nodes_in_layer[i+1];k++){for(int l=0;l<1;l++)printf("%lf ",mult[k][l]);printf("\n");}
-
       //printf("\n\nAfter adding bias = \n");
       //for(int k=0;k<nodes_in_layer[i+1];k++){for(int l=0;l<1;l++)printf("%lf ",biased[k][l]);printf("\n");}
-
       //printf("\n\nAfter applying logit = \n");
       //for(int k=0; k<nodes_in_layer[i+1]; k++){for(int l=0;l<1;l++)printf("%lf ",log[k][l]);printf("\n");
     }
